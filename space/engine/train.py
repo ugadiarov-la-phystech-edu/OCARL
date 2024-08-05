@@ -1,3 +1,5 @@
+import wandb
+
 from space.model import get_model
 from space.eval import get_evaluator
 import numpy as np
@@ -50,6 +52,22 @@ def train(cfg):
             global_step = checkpoint['global_step'] + 1
     if cfg.parallel:
         model = nn.DataParallel(model, device_ids=cfg.device_ids)
+
+    run = None
+    if cfg.wandb is not None:
+        run_name = cfg.wandb.run_name
+        if run_name is None:
+            run_name = f'run-{cfg.seed}'
+
+        run = wandb.init(
+            entity=cfg.wandb.entity,
+            project=cfg.wandb.project,
+            group=cfg.wandb.group,
+            name=run_name,
+            id=cfg.wandb.run_id,
+            resume='never' if cfg.wandb.run_id is None else 'must',
+            sync_tensorboard=True,
+        )
     
     writer = SummaryWriter(log_dir=cfg.logdir, flush_secs=30, purge_step=global_step)
     vis_logger = get_vislogger(cfg)
@@ -124,7 +142,4 @@ def train(cfg):
                 end_flag = True
                 break
 
-
-
-
-
+    wandb.finish()

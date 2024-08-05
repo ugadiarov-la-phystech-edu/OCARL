@@ -149,6 +149,12 @@ eval_cfg:
   test:
     batch_size: 12
     num_workers: 4
+wandb:
+  entity: your_account
+  project: Test project
+  group: test_group
+  run_name: test_run_name
+  run_id: null
 num_cat: 5
 use_z_pres: true
 glimpse_size: 16
