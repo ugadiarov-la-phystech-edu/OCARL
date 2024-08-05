@@ -29,7 +29,11 @@ def euclidean_dist(x, y):
     dist = dist.clamp(min=1e-12).sqrt()  # for numerical stability
     return dist
 class SpaceVis:
-    def __init__(self):
+    def __init__(self, do_visualize_categories=False):
+      self._do_visualize_categories = do_visualize_categories
+      if not self._do_visualize_categories:
+        return
+
       # objects = ['sand', 'zombie', 'player', 'cow', 'stone']
       objects = ['sand', 'cow', 'player', 'tree', 'stone']
       def read_img(k):
@@ -58,6 +62,9 @@ class SpaceVis:
 
     @torch.no_grad()
     def cat_vis(self, model, writer, global_step, device):
+      if not self._do_visualize_categories:
+          return
+
       if model.fg_module.z_cat_net:
         z_what_net = model.fg_module.z_cat_net
       else:

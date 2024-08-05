@@ -31,6 +31,7 @@ train:
   save_every: 1000
   eval_on: false
   eval_every: 1000
+  do_visualize_categories: false
   solver:
     fg:
       optim: RMSprop
