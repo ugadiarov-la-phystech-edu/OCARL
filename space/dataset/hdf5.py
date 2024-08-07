@@ -28,6 +28,8 @@ class Hdf5Dataset(Dataset):
         if self._to_tensor:
             image = np.transpose(image, [2, 0, 1])  # (c, h, w)
             image = torch.tensor(image, dtype=torch.float32)
+            if self._need_resize:
+                image = self._resize_transform(image)
 
         return image
 
