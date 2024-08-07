@@ -12,13 +12,12 @@ class Hdf5Dataset(Dataset):
         self._mode = mode
         self._data = h5py.File(path, 'r')[mode2split[self._mode]]
         self._allow_resize = allow_resize
-        expected_shape = (image_size, image_size)
+        self._obs_size = tuple(image_size)
         actual_shape = self._data["obss"].shape[1:3]
-        assert self._allow_resize or expected_shape == actual_shape, f'Expected shape={expected_shape}. Actual shape={actual_shape}'
+        self._need_resize = self._obs_size != actual_shape
+        assert self._allow_resize or not self._need_resize, f'Expected shape={self._obs_size}. Actual shape={actual_shape}'
 
-        self._obs_size = image_size
         self._to_tensor = to_tensor
-        self._need_resize = expected_shape != actual_shape
         self._num_samples = self._data["obss"].shape[0]
         if self._need_resize:
             self._resize_transform = torchvision.transforms.Resize(self._obs_size, interpolation=torchvision.transforms.InterpolationMode.BILINEAR)
