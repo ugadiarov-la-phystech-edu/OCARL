@@ -1,7 +1,7 @@
 import numpy as np
 import torch 
 import gym
-import procgen
+# import procgen
 import torch.nn as nn
 import os
 import torch.nn.functional as F
@@ -33,7 +33,7 @@ class SpaceWrapper(object):
       self.clf = joblib.load(kmeans_path) 
       self.num_cat = len(self.clf['kmeans'].cluster_centers_)
     else:
-      self.num_cat = self.arch.num_cat
+      self.num_cat = self.cfg.arch.num_cat
 
     self.obj_thres = obj_thres
 
