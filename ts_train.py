@@ -48,10 +48,12 @@ def make_clean_env(env_name, cfg):
       env = Hunter(**cfg.env_kwargs)
   elif env_name == 'shapes2d5x5':
       import shapes2d
-      env = ResizeWrapper(gym.make('Navigation5x5-v0'), obs_size=64)
+      env_id = cfg.env_id
+      env = ResizeWrapper(gym.make(env_id), obs_size=64)
   elif env_name == 'shapes2d10x10':
       import shapes2d
-      env = ResizeWrapper(gym.make('Navigation10x10-v0'), obs_size=128)
+      env_id = cfg.env_id
+      env = ResizeWrapper(gym.make(env_id), obs_size=128)
   else:
       assert False
   return env
@@ -124,7 +126,7 @@ def test_ppo(args, policy=None, logger=None, configureL=True, start_infos=None):
     obj_cat_num = args.obj_cat_nums.get(args.task, 0)
     # 1. Prepare Envs.
     get_env_args = lambda env_kwargs: oc.DictConfig(dict(G=8, obj_cat_num=obj_cat_num,
-                                        logdir=log_path, reset_new=False,
+                                        logdir=log_path, reset_new=False, env_id=args.env_kwargs.env_id,
                                         env_kwargs=env_kwargs))
     train_env_args = get_env_args(env_kwargs=args.env_kwargs.get('train', {}))
     test_env_args = args.env_kwargs.get('test', {})

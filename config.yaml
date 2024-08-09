@@ -50,6 +50,7 @@ env_kwargs:
     spawn_args: 'Z4C0/Z0C4'
   test:
     spawn_args: 'Z4C4'
+  env_id: null
 
 obj_cat_nums:
   crafter: 9
