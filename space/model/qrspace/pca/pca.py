@@ -64,7 +64,7 @@ if __name__ == '__main__':
     labels = kmeans.predict(X_transformed[:M])
 
     os.makedirs(logdir, exist_ok=True)
-    if args.wandb_project is not None:
+    if args.wandb_project:
         run = wandb.init(
             project=args.wandb_project,
             group=args.wandb_group,
