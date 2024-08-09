@@ -13,6 +13,13 @@ step_per_collect: 1024
 repeat_per_collect: 4
 batch_size: 256
 
+wandb:
+  entity: your_account
+  project: Test project
+  group: test_group
+  run_name: test_run_name
+  run_id: null
+
 test:
   buffer_size: 1024
   step_per_epoch: 1024
@@ -47,10 +54,14 @@ env_kwargs:
 obj_cat_nums:
   crafter: 9
   hunter: 5
+  shapes2d5x5: 6
+  shapes2d10x10: 9
 
 space_logdirs:
   hunter: 'space_models/hunter'
   crafter: 'space_models/crafter'
+  shapes2d5x5: 'space_models/shapes2d5x5'
+  shapes2d10x10: 'space_models/shapes2d10x10'
 
 pol_kwargs:
   mlp:

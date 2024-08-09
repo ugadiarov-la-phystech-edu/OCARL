@@ -1,8 +1,8 @@
 import gym
 import numpy as np
 import torch.nn.functional as F
-import crafter
-import procgen
+# import crafter
+# import procgen
 import cv2
 import json
 import torch
@@ -12,6 +12,8 @@ from gym.spaces.utils import flatten_space, unflatten, flatdim, flatten
 from collections import OrderedDict
 
 from space_wrapper import SpaceWrapper
+
+import shapes2d
 
 def batch_flatten(space, x, batch=True):
   if isinstance(space, gym.spaces.Box):
@@ -101,16 +103,10 @@ class ObjCatPreprocessV2:
     return kwargs
 
 class ObjEnvWrapper(gym.Env):
-  def __init__(self, env_name, cfg):
+  def __init__(self, env_fn, env_name, cfg):
     self.cfg = cfg
     super().__init__()
-    if 'crafter' in env_name:
-      self.env_fn = lambda: crafter.Recorder(crafter.Env(), cfg.logdir,
-                                      save_stats=True, save_video=False, save_episode=False)
-    elif 'hunter' in env_name:
-      self.env_fn = lambda: Hunter(**cfg.env_kwargs)
-    else:
-      assert False
+    self.env_fn = lambda: env_fn(env_name, self.cfg)
     self.env = self.env_fn() 
     self.obj_cat_num = cfg.obj_cat_num
     self.G = cfg.get('G', 8)

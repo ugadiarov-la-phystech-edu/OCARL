@@ -2,6 +2,8 @@ import argparse
 import multiprocessing as mp
 import os
 import functools
+
+import wandb
 from omegaconf import OmegaConf, DictConfig
 import omegaconf as oc
 import warnings
@@ -25,7 +27,18 @@ from tianshou.trainer import gather_info, test_episode
 
 from objenv_wrapper import *
 from hunter_game import Env as Hunter
-import crafter
+# import crafter
+
+
+class ResizeWrapper(gym.ObservationWrapper):
+    def __init__(self, env, obs_size):
+        super().__init__(env)
+        self._obs_size = obs_size
+        self.observation_space = gym.spaces.Box(low=0, high=255, shape=(self._obs_size, self._obs_size, 3), dtype=np.uint8)
+
+    def observation(self, observation):
+        return cv2.resize(observation, (self._obs_size, self._obs_size), interpolation=cv2.INTER_LINEAR)
+
 
 def make_clean_env(env_name, cfg):
   if 'crafter' in env_name:
@@ -33,6 +46,12 @@ def make_clean_env(env_name, cfg):
                save_stats=True, save_video=False, save_episode=False)
   elif 'hunter' in env_name:
       env = Hunter(**cfg.env_kwargs)
+  elif env_name == 'shapes2d5x5':
+      import shapes2d
+      env = ResizeWrapper(gym.make('Navigation5x5-v0'), obs_size=64)
+  elif env_name == 'shapes2d10x10':
+      import shapes2d
+      env = ResizeWrapper(gym.make('Navigation10x10-v0'), obs_size=128)
   else:
       assert False
   return env
@@ -117,7 +136,7 @@ def test_ppo(args, policy=None, logger=None, configureL=True, start_infos=None):
       # cur_make_env = lambda env_name, args: gym.make(env_name, **args.env_kwargs)
       cur_make_env = make_clean_env
     else:
-      cur_make_env = lambda env_name, args: ObjEnvWrapper(env_name, args)
+      cur_make_env = lambda env_name, args: ObjEnvWrapper(make_clean_env, env_name, args)
     if 'crafter' not in env_name:
       env_cls = DummyVectorEnv
     else:
@@ -159,11 +178,28 @@ def test_ppo(args, policy=None, logger=None, configureL=True, start_infos=None):
     os.makedirs(log_path, exist_ok=True)
     print(OmegaConf.to_yaml(args))
     OmegaConf.save(args, os.path.join(log_path, 'config.yaml'))
+
+    if args.wandb is not None:
+        wandb.tensorboard.patch(root_logdir=log_path)
+        run_name = args.wandb.run_name
+        if run_name is None:
+            run_name = f'run-{args.seed}'
+
+        run = wandb.init(
+            entity=args.wandb.entity,
+            project=args.wandb.project,
+            group=args.wandb.group,
+            name=run_name,
+            id=args.wandb.run_id,
+            resume='never' if args.wandb.run_id is None else 'must',
+            sync_tensorboard=True,
+        )
+
     if logger is None:
-      writer = SummaryWriter(log_path)
+      writer = SummaryWriter(os.path.join(log_path, 'base'))
       logger = TensorboardLogger(writer)
     if configureL:
-      L.configure(log_path, ['csv'])
+      L.configure(os.path.join(log_path, 'sb3'), ['tensorboard'])
     def save_fn(policy):
         torch.save(policy.state_dict(), os.path.join(log_path, 'policy.pth'))
 
