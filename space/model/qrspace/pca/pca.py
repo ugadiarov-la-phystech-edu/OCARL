@@ -55,8 +55,10 @@ if __name__ == '__main__':
     transformer = IncrementalPCA(n_components=args.num_pca_components, batch_size=args.batch_size)
     X = sparse.csr_matrix(X)
     X_transformed = transformer.fit_transform(X)
+    print(f'PCA fitted: {data.shape[0]}', flush=True)
     kmeans = KMeans(init="k-means++", n_clusters=C, max_iter=1000)
     kmeans = kmeans.fit(X_transformed)
+    print('KMeans fitted', flush=True)
 
     joblib.dump(dict(pca=transformer, kmeans=kmeans), args.save_path)
     labels = kmeans.predict(X_transformed[:M])
