@@ -42,7 +42,7 @@ class SpaceWrapper(object):
   """
   @torch.no_grad()
   def postprocessV2(self, z_shift, z_pres, z_what):
-      G = 8
+      G = self.cfg.arch.G
       B = z_pres.shape[0]
       z_shift = ((z_shift + 1) * G // 2).long().clamp(0, G-1)
       z_shift = z_shift[...,1] * G + z_shift[...,0]
@@ -62,7 +62,7 @@ class SpaceWrapper(object):
   def forward_kmeans(self, x):
     x = torch.as_tensor(x, device = self.device).float().permute(0,3,1,2) / 255.
     B = x.shape[0]
-    G = 8
+    G = self.cfg.arch.G
     res = self.fg(x, 1000000, glimpse_only=True)
     z_pres, glimpse, z_shift = res['z_pres'], res['glimpse'].detach().cpu(), res['z_shift'] 
 
@@ -92,7 +92,7 @@ class SpaceWrapper(object):
     # x = np.asarray(x)
     x = torch.as_tensor(x, device = self.device).float().permute(0,3,1,2) / 255.
     B = x.shape[0]
-    G = 8
+    G = self.cfg.arch.G
     if self.model_input_size[0] != 64:
       x = VF.resize(x, self.model_input_size) 
     fg = self.fg(x, 10000000, encode_only=True) 

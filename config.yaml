@@ -76,6 +76,7 @@ pol_kwargs:
       filters: [16,32,32]
       obs_shape: [64,64,3]
       enc_coeff: 0.01
+      G: ${G}
     reasoning_layer:
       use_sep_mlp: true
   rrl: # make sure space.use_space == false.

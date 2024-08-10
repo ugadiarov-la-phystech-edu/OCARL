@@ -20,7 +20,7 @@ class RNEncoder(nn.Module):
   def split_obs(self, o):
     shape = o.shape
     obs_shape = self.cfg.obs_shape
-    mask_shape = (8, 8, self.cfg.obj_cat_num)
+    mask_shape = (self.cfg.G, self.cfg.G, self.cfg.obj_cat_num)
     obs = o[...,:np.prod(obs_shape)].reshape(*shape[:-1], *obs_shape)
     mask = o[...,np.prod(obs_shape):].reshape(*shape[:-1], *mask_shape)
     return obs, mask.detach()
