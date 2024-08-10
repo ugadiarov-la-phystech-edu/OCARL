@@ -61,7 +61,7 @@ arch:
   img_shape:
   - 64
   - 64
-  G: 8
+  G: 4
   fg_sigma: 0.2
   img_enc_dim_fg: 64
   z_pres_dim: 1
