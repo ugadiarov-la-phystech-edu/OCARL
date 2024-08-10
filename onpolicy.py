@@ -201,7 +201,7 @@ def onpolicy_trainer(
             policy, test_collector, test_fn, epoch, episode_per_test, logger, env_step,
             reward_metric
         )
-        rew, rew_std = test_result["rew"], test_result["rew_std"]
+        rew, rew_std, success_rate, success_rate_std = [test_result[key] for key in ("rew", "rew_std", "success_rate", "success_rate_std")]
         if best_epoch < 0 or best_reward < rew:
             best_epoch, best_reward, best_reward_std = epoch, rew, rew_std
             if save_fn:
@@ -211,8 +211,10 @@ def onpolicy_trainer(
           L.record('env_step', env_step)
           L.record('epoch', epoch)
           L.record('grad_step', gradient_step)
-          L.record('eval_ret/mean', rew)
-          L.record('eval_ret/std',rew_std)
+          L.record('eval/mean_reward', rew)
+          L.record('eval/mean_reward_std', rew_std)
+          L.record('eval/success_rate', success_rate)
+          L.record('eval/success_rate_std', success_rate_std)
           L.record('train_ret/max', max_ret)
           L.record('train_ret/min', min_ret)
           L.record('total_time', time.time() - start_time)

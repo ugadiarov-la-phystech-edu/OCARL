@@ -206,6 +206,7 @@ class Collector(object):
         episode_rews = []
         episode_lens = []
         episode_start_indices = []
+        episode_successes = []
         other_metrics = {}
 
         while True:
@@ -279,6 +280,8 @@ class Collector(object):
                 episode_start_indices.append(ep_idx[env_ind_local])
                 if True:
                   episode_infos=info[env_ind_local]
+                  episode_successes.append(
+                      np.asarray([env_info.get('is_success', False) for env_info in episode_infos], dtype=np.float64))
                   for ep_info in episode_infos:
                     for k in ep_info:
                       if k.startswith('metric'):
@@ -324,17 +327,18 @@ class Collector(object):
             self.reset_env()
 
         if episode_count > 0:
-            rews, lens, idxs = list(
+            rews, lens, successes, idxs = list(
                 map(
                     np.concatenate,
-                    [episode_rews, episode_lens, episode_start_indices]
+                    [episode_rews, episode_lens, episode_successes, episode_start_indices]
                 )
             )
             rew_mean, rew_std = rews.mean(), rews.std()
             len_mean, len_std = lens.mean(), lens.std()
+            success_rate, success_rate_std = successes.mean(), successes.std()
         else:
-            rews, lens, idxs = np.array([]), np.array([], int), np.array([], int)
-            rew_mean = rew_std = len_mean = len_std = 0
+            rews, lens, successes, idxs = np.array([]), np.array([], int), np.array([]), np.array([], int)
+            rew_mean = rew_std = len_mean = len_std = success_rate = success_rate_std = 0
 
         return_info = {
             "n/ep": episode_count,
@@ -344,8 +348,10 @@ class Collector(object):
             "idxs": idxs,
             "rew": rew_mean,
             "len": len_mean,
+            "success_rate": success_rate,
             "rew_std": rew_std,
             "len_std": len_std,
+            "success_rate_std": success_rate_std,
         }
         if len(other_metrics) > 0:
           for k, v in other_metrics.items():
