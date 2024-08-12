@@ -17,7 +17,7 @@ dataset_roots:
   custom-hunter: ${dir1}/hunter_rew1.2_step100000.h5
   hdf5-shapes2d5x5: ${dir1}/Shapes2D5x5-Seed0-Tr300000-Val30000.hdf5
   hdf5-shapes2d10x10: ${dir1}/Shapes2D10x10-Seed0-Tr300000-Val30000.hdf5
-  hdf5-shapes2d7x7: ${dir}/Navigation7x7-Seed0-Tr500000-Val50000.hdf5
+  hdf5-shapes2d7x7: ${dir1}/Navigation7x7-Seed0-Tr500000-Val50000.hdf5
 
 gamelist:
 - dodgeball
