@@ -46,7 +46,7 @@ def make_clean_env(env_name, cfg):
                save_stats=True, save_video=False, save_episode=False)
   elif 'hunter' in env_name:
       env = Hunter(**cfg.env_kwargs)
-  elif env_name == 'shapes2d5x5':
+  elif env_name in ('shapes2d5x5', 'shapes2d7x7'):
       import shapes2d
       env_id = cfg.env_id
       env = ResizeWrapper(gym.make(env_id), obs_size=64)
