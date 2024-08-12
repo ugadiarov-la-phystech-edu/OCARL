@@ -57,12 +57,14 @@ obj_cat_nums:
   hunter: 5
   shapes2d5x5: 6
   shapes2d10x10: 9
+  shapes2d7x7: 6
 
 space_logdirs:
   hunter: 'space_models/hunter'
   crafter: 'space_models/crafter'
   shapes2d5x5: 'space_models/shapes2d5x5'
   shapes2d10x10: 'space_models/shapes2d10x10'
+  shapes2d7x7: 'space_models/shapes2d7x7'
 
 pol_kwargs:
   mlp:
