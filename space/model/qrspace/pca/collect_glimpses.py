@@ -1,19 +1,20 @@
 import argparse
 
-import h5py
 import numpy as np
-import torch
-import torchvision
 from matplotlib import pyplot as plt
+from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+from space.dataset import EpisodesDataset, Hdf5Dataset
 from space_wrapper import SpaceWrapper
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--space_config_path', type=str, required=True)
+    parser.add_argument('--dataset_type', type=str, choices=['hdf5', 'episodes'], required=True)
     parser.add_argument('--dataset_path', type=str, required=True)
+    parser.add_argument('--prefix_path', type=str, required=False)
     parser.add_argument('--split', choices=['train', 'val'], default='train')
     parser.add_argument('--batch_size', type=int, default=192)
     parser.add_argument('--obs_size', type=int, default=64)
@@ -28,17 +29,22 @@ if __name__ == '__main__':
     space_wrapper = SpaceWrapper(args.space_config_path)
     space_wrapper.fg.requires_grad_(False)
     batch_size = args.batch_size
-    key = 'TrainingSet' if args.split == 'train' else 'ValidationSplit'
-    train_data = h5py.File(args.dataset_path, 'r')[key]['obss']
+    if args.dataset_type == 'hdf5':
+        dataset = Hdf5Dataset(path=args.dataset_path, image_size=(args.obs_size, args.obs_size), mode=args.split,
+                              to_tensor=True)
+    elif args.dataset_type == 'episodes':
+        assert args.prefix_path is not None
+        dataset = EpisodesDataset(args.dataset_path, prefix_path=args.prefix_path,
+                                  image_size=(args.obs_size, args.obs_size), to_tensor=True)
+    else:
+        assert False
 
-    transform = torchvision.transforms.Resize((args.obs_size, args.obs_size), interpolation=torchvision.transforms.InterpolationMode.BILINEAR)
-    threshold = args.threshold
-    size = train_data.shape[0]
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=4, drop_last=False)
     pres_scores = []
     pres_glimpses = []
-    for i in tqdm(range(0, size, batch_size)):
-        batch = torch.as_tensor(train_data[i: i + batch_size], dtype=torch.float32, device='cuda') / 255
-        batch = transform(batch.permute((0, 3, 1, 2)))
+    threshold = args.threshold
+    for batch in tqdm(dataloader):
+        batch = batch.to(space_wrapper.device)
         res = space_wrapper.fg(batch, 1000000, glimpse_only=True)
         z_pres, glimpse, z_shift = res['z_pres'], res['glimpse'], res['z_shift']
         scores = z_pres[z_pres > threshold].detach().cpu().numpy()
