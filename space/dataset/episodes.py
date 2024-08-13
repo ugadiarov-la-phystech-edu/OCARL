@@ -13,7 +13,7 @@ class EpisodesDataset(Dataset):
         self._prefix_path = prefix_path
         self._allow_resize = allow_resize
         self._obs_size = tuple(image_size)
-        self._info = np.load(self._info_path).item()
+        self._info = np.load(self._info_path, allow_pickle=True).item()
         self._episode2offset = [0]
         self._index2episode = []
         for episode_id in sorted(self._info.keys()):
