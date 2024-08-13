@@ -22,7 +22,7 @@ class EpisodesDataset(Dataset):
 
         print('Dataset size:', self._episode2offset[-1])
 
-        sample = self._read_image(os.path.join(self._prefix_path, self._info_path[0]['obs'][0]))
+        sample = self._read_image(os.path.join(self._prefix_path, self._info[0]['obs'][0]))
         actual_shape = sample.shape[:2]
         print('Actual shape:', actual_shape, 'Expected shape:', self._obs_size, flush=True)
         self._need_resize = self._obs_size != actual_shape
