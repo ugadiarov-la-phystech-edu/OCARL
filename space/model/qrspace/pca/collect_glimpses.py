@@ -1,7 +1,7 @@
 import argparse
 
 import numpy as np
-from matplotlib import pyplot as plt
+import wandb
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -20,6 +20,9 @@ def parse_args():
     parser.add_argument('--obs_size', type=int, default=64)
     parser.add_argument('--threshold', type=float, default=0.8)
     parser.add_argument('--save_path', type=str, required=True)
+    parser.add_argument('--wandb_project', type=str, required=False)
+    parser.add_argument('--wandb_group', type=str, default='Test group')
+    parser.add_argument('--wandb_run_name', type=str, default='run-0')
 
     return parser.parse_args()
 
@@ -49,13 +52,23 @@ if __name__ == '__main__':
         z_pres, glimpse, z_shift = res['z_pres'], res['glimpse'], res['z_shift']
         scores = z_pres[z_pres > threshold].detach().cpu().numpy()
         glimpses = glimpse[z_pres > threshold].detach().cpu().numpy()
-        # pres_scores.append(scores)
+        pres_scores.append(scores)
         pres_glimpses.append(glimpses)
 
-    # pres_scores = np.concatenate(pres_scores)
+    pres_scores = np.concatenate(pres_scores)
     pres_glimpses = np.concatenate(pres_glimpses)
     np.save(args.save_path, pres_glimpses)
 
-    # plt.hist(pres_scores, bins=100)
-    # plt.title('histogram')
-    # plt.show()
+    if args.wandb_project:
+        run = wandb.init(
+            project=args.wandb_project,
+            group=args.wandb_group,
+            name=args.wandb_run_name,
+            resume='never',
+            sync_tensorboard=True,
+        )
+
+        table = wandb.Table(data=pres_scores.reshape((-1, 1)), columns=['scores'])
+        wandb.init(project=args.wandb_project, group=args.wandb_group, name=args.wandb_run_name)
+        wandb.log({'histogram': wandb.plot.histogram(table, "scores", title="Presence score")})
+        wandb.finish()
