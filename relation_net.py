@@ -105,7 +105,15 @@ class RNModule(nn.Module):
       create_layer = functools.partial(MultiLinear, num_linears=self.obj_cat_num)
     fdim = 32
     self.mlp = create_mlp(64, fdim, [64], create_layer=create_layer, return_seq=True)
-    self.ac  = nn.Linear(fdim, action_space.n + 1)
+    if isinstance(action_space, gym.spaces.Discrete):
+      n_features = action_space.n
+    elif isinstance(action_space, gym.spaces.Box):
+      n_features = action_space.shape[0]
+    else:
+      raise NotImplementedError(f'Unsupported action space: {action_space}')
+    print('Action space:', n_features)
+
+    self.ac = nn.Linear(fdim, n_features + 1)
   def forward(self, x, ret_atten_wts=False, mask_out = None):
     obj_cat = x[...,-self.obj_cat_num:] # B, H, W, S
     atten_wts = None
