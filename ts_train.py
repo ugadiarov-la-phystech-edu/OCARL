@@ -56,7 +56,7 @@ def make_clean_env(env_name, cfg):
       import shapes2d
       env_id = cfg.env_id
       env = ResizeWrapper(gym.make(env_id), obs_size=128)
-  elif env_name == 'robosuite-lift':
+  elif env_name == 'robosuite_lift':
       from robosuite import RobosuiteEnv
       env_id = cfg.env_id
       env = RobosuiteEnv(task=env_id, horizon=125, seed=None, initialization_noise_magnitude=0.5)

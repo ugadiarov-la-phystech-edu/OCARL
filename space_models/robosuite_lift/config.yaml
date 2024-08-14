@@ -55,7 +55,7 @@ show:
 arch:
   z_what_type: SimpleGMVAE
   use_z_pres: false
-  num_cat: 2
+  num_cat: 5
   M: 10
   z_lambda: 0.1
   glimpse_size: 16
@@ -154,7 +154,7 @@ wandb:
   group: test_group
   run_name: test_run_name
   run_id: null
-num_cat: 2
+num_cat: 5
 use_z_pres: false
 glimpse_size: 16
 z_what_dim: 16

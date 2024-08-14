@@ -58,6 +58,7 @@ obj_cat_nums:
   shapes2d5x5: 6
   shapes2d10x10: 9
   shapes2d7x7: 6
+  robosuite_lift: 6
 
 space_logdirs:
   hunter: 'space_models/hunter'
