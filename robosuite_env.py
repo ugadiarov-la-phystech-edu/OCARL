@@ -115,7 +115,7 @@ class RobosuiteEnv(gym.Env):
         self.action_space = gym.spaces.Box(low, high)
 
     def _process_observation(self, observation):
-        return np.flipud(observation[self._image_key_name])[self._crop[0][0]:self._crop[0][1], self._crop[1][0]:self._crop[1][1]]
+        return np.flipud(observation[self._image_key_name])
 
     def render(self, mode=None):
         return self._last_frame
