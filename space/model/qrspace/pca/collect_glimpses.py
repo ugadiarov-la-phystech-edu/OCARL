@@ -12,6 +12,7 @@ from space_wrapper import SpaceWrapper
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--space_config_path', type=str, required=True)
+    parser.add_argument('--checkpoint_path', type=str, required=True)
     parser.add_argument('--dataset_type', type=str, choices=['hdf5', 'episodes'], required=True)
     parser.add_argument('--dataset_path', type=str, required=True)
     parser.add_argument('--prefix_path', type=str, required=False)
