@@ -30,7 +30,7 @@ def parse_args():
 
 if __name__ == '__main__':
     args = parse_args()
-    space_wrapper = SpaceWrapper(args.space_config_path)
+    space_wrapper = SpaceWrapper(args.space_config_path, ckpt_path=args.checkpoint_path)
     space_wrapper.fg.requires_grad_(False)
     batch_size = args.batch_size
     if args.dataset_type == 'hdf5':
