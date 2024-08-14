@@ -7,6 +7,8 @@ import wandb
 from omegaconf import OmegaConf, DictConfig
 import omegaconf as oc
 import warnings
+
+
 warnings.filterwarnings('ignore')
 import gym
 import numpy as np
@@ -54,6 +56,11 @@ def make_clean_env(env_name, cfg):
       import shapes2d
       env_id = cfg.env_id
       env = ResizeWrapper(gym.make(env_id), obs_size=128)
+  elif env_name == 'robosuite-lift':
+      from robosuite import RobosuiteEnv
+      env_id = cfg.env_id
+      env = RobosuiteEnv(task=env_id, horizon=125, seed=None, initialization_noise_magnitude=0.5)
+      env = ResizeWrapper(env, obs_size=128)
   else:
       assert False
   return env
