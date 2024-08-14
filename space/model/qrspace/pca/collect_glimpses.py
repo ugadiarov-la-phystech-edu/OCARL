@@ -2,6 +2,7 @@ import argparse
 
 import numpy as np
 import wandb
+from omegaconf import OmegaConf
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -16,6 +17,7 @@ def parse_args():
     parser.add_argument('--dataset_type', type=str, choices=['hdf5', 'episodes'], required=True)
     parser.add_argument('--dataset_path', type=str, required=True)
     parser.add_argument('--prefix_path', type=str, required=False)
+    parser.add_argument('--num_cat', type=int, required=False)
     parser.add_argument('--split', choices=['train', 'val'], default='train')
     parser.add_argument('--batch_size', type=int, default=192)
     parser.add_argument('--obs_size', type=int, default=64)
@@ -30,7 +32,12 @@ def parse_args():
 
 if __name__ == '__main__':
     args = parse_args()
-    space_wrapper = SpaceWrapper(args.space_config_path, ckpt_path=args.checkpoint_path)
+    space_wrapper_config = OmegaConf.load(args.space_config_path)
+    if args.num_cat is not None:
+        space_wrapper_config.arch.num_cat = args.num_cat
+        space_wrapper_config.num_cat = args.num_cat
+
+    space_wrapper = SpaceWrapper(space_wrapper_config, ckpt_path=args.checkpoint_path)
     space_wrapper.fg.requires_grad_(False)
     batch_size = args.batch_size
     if args.dataset_type == 'hdf5':

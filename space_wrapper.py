@@ -15,9 +15,8 @@ import torchvision.transforms.functional as VF
 import omegaconf as oc
 
 class SpaceWrapper(object):
-  def __init__(self, cfg_path, ckpt_path=None, kmeans_path=None, obj_thres=0.8):
+  def __init__(self, cfg, ckpt_path=None, kmeans_path=None, obj_thres=0.8):
     super().__init__()
-    cfg = oc.OmegaConf.load(cfg_path)
     ckpt_path = cfg.checkpointdir if not ckpt_path else ckpt_path
     self.cfg = cfg
     self.model_input_size = cfg.arch.img_shape

@@ -7,6 +7,8 @@ import cv2
 import json
 import torch
 import torch.nn.functional as F
+from omegaconf import OmegaConf
+
 from hunter_game import Env as Hunter
 from gym.spaces.utils import flatten_space, unflatten, flatdim, flatten 
 from collections import OrderedDict
@@ -47,7 +49,8 @@ class ObjCatPreprocess:
     else:
       cfg_path, kmeans_path = cfg.cfg_path, cfg.kmeans_path
       self.env = env
-      self.space = SpaceWrapper(cfg_path, kmeans_path=kmeans_path)
+      space_wrapper_config = OmegaConf.load(cfg_path)
+      self.space = SpaceWrapper(space_wrapper_config, kmeans_path=kmeans_path)
       self.p = cfg.get('p', 0)
   def random_mask(self, p, obj_cat):
     if p == 0:
@@ -80,7 +83,8 @@ class ObjCatPreprocessV2:
     else:
       cfg_path, kmeans_path = cfg.cfg_path, cfg.kmeans_path
       self.env = env
-      self.space = SpaceWrapper(cfg_path, kmeans_path=kmeans_path)
+      space_wrapper_config = OmegaConf.load(cfg_path)
+      self.space = SpaceWrapper(space_wrapper_config, kmeans_path=kmeans_path)
     self.output_shape = (8 * 8, self.space.cfg.arch.z_what_dim + 2 + 1)  
     self.p = cfg.get('p', 0)
   def __call__(self, **kwargs):
