@@ -66,6 +66,7 @@ space_logdirs:
   shapes2d5x5: 'space_models/shapes2d5x5'
   shapes2d10x10: 'space_models/shapes2d10x10'
   shapes2d7x7: 'space_models/shapes2d7x7'
+  robosuite_lift: 'space_models/robosuite_lift'
 
 pol_kwargs:
   mlp:
