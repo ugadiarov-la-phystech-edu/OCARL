@@ -106,14 +106,17 @@ class RNModule(nn.Module):
     fdim = 32
     self.mlp = create_mlp(64, fdim, [64], create_layer=create_layer, return_seq=True)
     if isinstance(action_space, gym.spaces.Discrete):
-      n_features = action_space.n
+      self.action_dim = action_space.n
+      self.action_type = 'discrete'
     elif isinstance(action_space, gym.spaces.Box):
-      n_features = action_space.shape[0]
+      self.action_dim = action_space.shape[0]
+      self.action_type = 'continuous'
+      self.sigma_param = nn.Parameter(torch.zeros(self.action_dim, 1))
     else:
       raise NotImplementedError(f'Unsupported action space: {action_space}')
-    print('Action space:', n_features)
+    print('Action dim:', self.action_dim)
 
-    self.ac = nn.Linear(fdim, n_features + 1)
+    self.ac = nn.Linear(fdim, self.action_dim + 1)
   def forward(self, x, ret_atten_wts=False, mask_out = None):
     obj_cat = x[...,-self.obj_cat_num:] # B, H, W, S
     atten_wts = None
@@ -135,6 +138,11 @@ class RNModule(nn.Module):
       out = (out * obj_cat).sum(-2) # N, B, 64 
     out = out.amax(0) # (n, 64)
     out = self.ac(out)
+    if self.action_type == 'continuous':
+      shape = [1] * len(out.shape)
+      shape[1] = -1
+      sigma = (self.sigma_param.view(shape) + torch.zeros(out.size()[0], self.action_dim, dtype=out.dtype, device=out.device)).exp()
+      out = torch.cat([out, sigma], dim=-1)
     if ret_atten_wts:
       return out, atten_wts
     return out

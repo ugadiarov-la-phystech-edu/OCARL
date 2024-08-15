@@ -4,6 +4,8 @@ import torch.nn as nn
 import numpy as np
 import gym
 import torch.nn.functional as F
+from torch.distributions import Independent, Normal, Categorical
+
 from encoder import *
 from utils import *
 # from stable_baselines3.common.torch_layers import create_mlp
@@ -14,6 +16,18 @@ import itertools
 from tianshou.utils.net.common import ActorCritic
 import ppo_utils
 from tianshou.policy import BasePolicy, PPOPolicy
+
+
+def diagonal_gaussian(logits):
+    action_dim = logits.size()[1] // 2
+    mu = logits[:, :action_dim]
+    sigma = logits[:, action_dim:]
+    return Independent(Normal(loc=mu, scale=sigma), 1)
+
+
+def categorical(logits):
+    return Categorical(logits=logits)
+
 
 class PPOBase(PPOPolicy):
   def __init__(self, obs_space, act_space,
@@ -33,11 +47,19 @@ class PPOBase(PPOPolicy):
     else:
       self.enc, self.actor_critic = make_enc_ac(obs_space, act_space)
     optim = torch.optim.Adam(itertools.chain(self.enc.parameters(), self.actor_critic.parameters()), lr=5e-4)
-    dist = torch.distributions.Categorical
+    if isinstance(self.act_space, gym.spaces.Box):
+        action_type = 'continuous'
+        dist = diagonal_gaussian
+    elif isinstance(self.act_space, gym.spaces.Discrete):
+        action_type = 'discrete'
+        dist = categorical
+
     PPOPolicy.__init__(self, self.actor_fn if actor_fn is None else actor_fn, self.critic_fn if critic_fn is None else critic_fn, optim, dist, init_module=False, **kwargs)
     self.to(device)
+    self.action_type = action_type
 
   def actor_fn(self, obs, state, **kwargs):
+    raise NotImplementedError('Cannot be here!')
     res = self.forward(Batch(obs=obs))
     return res.probs, state
   def critic_fn(self, obs):
@@ -51,18 +73,18 @@ class PPOBase(PPOPolicy):
     return latent
   def forward_pol(self, latent, pol, state=None):
     latent = pol(latent)
-    logits, fvalues = latent[...,1:], latent[...,:1]
-    probs = F.softmax(logits, -1)
-    dist = self.dist_fn(probs)
+    logits, fvalues = latent[..., 1:], latent[..., :1]
+    dist = self.dist_fn(logits)
     if self._deterministic_eval and not self.training:
         if self.action_type == "discrete":
-            act = probs.argmax(-1)
+            act = logits.argmax(-1)
         elif self.action_type == "continuous":
-            act = probs[0]
+            # logit is concatenation of mu and sigma of the same dimensions
+            act = logits[:, :logits.size()[1] // 2]
     else:
         act = dist.sample()
-    return Batch(probs=probs, act=act, state=state, dist=dist, fvalues=fvalues,
-                policy=Batch(probs=probs, fvalues=fvalues))
+    return Batch(logits=logits, act=act, state=state, dist=dist, fvalues=fvalues,
+                policy=Batch(logits=logits, fvalues=fvalues))
   def log(self, loss_info, loss_infos, suffix=''):
     for k, v in loss_info.items():
       ks = k + suffix
@@ -80,7 +102,7 @@ class PPOBase(PPOPolicy):
               b = to_torch(b, torch.float32, self.device)
               res, latent = self.forward_latent(b, ret_latent=True)
               res = self.forward_pol(res, self.actor_critic)
-              train_loss, train_loss_info = ppo_utils.ppo_loss(self.dist_fn(res.probs), res.fvalues,
+              train_loss, train_loss_info = ppo_utils.ppo_loss(self.dist_fn(res.logits), res.fvalues,
                                           *[b.__dict__[attr] for attr in ['adv', 'act', 'logp_old', 'v_s', 'returns']],
                                           self)
               if hasattr(self.enc, 'enc_loss'):
@@ -104,7 +126,7 @@ class PPOBase(PPOPolicy):
           self._buffer, self._indices = buffer, indices
       batch = self._compute_returnsV2(batch, buffer, indices)
       batch.act = to_torch_as(batch.act, batch.v_s)
-      logp_old = self.dist_fn(batch.policy.probs).log_prob(batch.act)
+      logp_old = self.dist_fn(batch.policy.logits).log_prob(batch.act)
       batch.logp_old = logp_old
       batch.to_torch(torch.float32, 'cpu')
       return batch
